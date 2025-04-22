@@ -1,33 +1,96 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerJoinManager : MonoBehaviour
 {
-    public GameObject[] playerPrefabs; // 不同披薩模型的 Prefab 陣列
-    public Transform[] spawnPoints2P; // 2P 模式的出生點
-    public Transform[] spawnPoints4P; // 4P 模式的出生點
+    public GameObject[] presetPlayers; // 預設的披薩物件（Hierarchy 中先放好）
+    public Transform[] spawnPoints2P;
+    public Transform[] spawnPoints4P;
 
-    private int playerCount = 0; // 當前玩家數量
+    private HashSet<int> joinedDevices = new HashSet<int>();
+    private int playerCount = 0;
 
-    private void Start()
+    [SerializeField] private int maxPlayers = 4;
+
+    private void OnEnable()
     {
-        PlayerInputManager.instance.onPlayerJoined += OnPlayerJoined;
+        if (PlayerInputManager.instance != null)
+        {
+            PlayerInputManager.instance.onPlayerJoined += OnPlayerJoined;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (PlayerInputManager.instance != null)
+        {
+            PlayerInputManager.instance.onPlayerJoined -= OnPlayerJoined;
+        }
     }
 
     private void OnPlayerJoined(PlayerInput playerInput)
     {
+        // 若裝置未綁定則拒絕
+        if (playerInput.devices.Count == 0)
+        {
+            Debug.LogWarning("這個玩家沒有綁定任何輸入裝置！");
+            Destroy(playerInput.gameObject);
+            return;
+        }
+
+        int deviceId = playerInput.devices[0].deviceId;
+
+        // 控制器是否已加入
+        if (joinedDevices.Contains(deviceId))
+        {
+            Debug.LogWarning("這個控制器已經加入過了！");
+            Destroy(playerInput.gameObject);
+            return;
+        }
+
+        if (playerCount >= maxPlayers)
+        {
+            Debug.LogWarning("超出最大玩家數，拒絕加入！");
+            Destroy(playerInput.gameObject);
+            return;
+        }
+
+        // 出生點選擇邏輯
+        Transform[] spawnArray = (maxPlayers <= 2) ? spawnPoints2P : spawnPoints4P;
+
+        if (playerCount >= spawnArray.Length)
+        {
+            Debug.LogError("Spawn point 數量不足！");
+            Destroy(playerInput.gameObject);
+            return;
+        }
+
+        if (presetPlayers == null || presetPlayers.Length == 0 || presetPlayers[playerCount] == null)
+        {
+            Debug.LogError("預設披薩物件（presetPlayers）尚未設定！");
+            Destroy(playerInput.gameObject);
+            return;
+        }
+
+        // 創建小披薩玩家物件
+        GameObject newPlayer = Instantiate(presetPlayers[playerCount], spawnArray[playerCount].position, spawnArray[playerCount].rotation);
+        newPlayer.transform.SetParent(playerInput.transform, false); // 將 PlayerInput 作為新小披薩的父物件
+
+        // 確保不重複添加 PlayerInput
+        PlayerInput newPlayerInput = newPlayer.GetComponent<PlayerInput>();
+        if (newPlayerInput == null)
+        {
+            newPlayerInput = newPlayer.AddComponent<PlayerInput>();
+        }
+
+       // newPlayerInput.defaultControlScheme = "Gamepad";
+        newPlayerInput.actions = playerInput.actions; // 繼承原有的輸入配置
+
+        // 更新玩家狀態
+        joinedDevices.Add(deviceId);
         playerCount++;
 
-        // 選擇出生點
-        Transform spawnPoint = (playerCount <= 2) ? spawnPoints2P[playerCount - 1] : spawnPoints4P[playerCount - 1];
-
-        // 確保有足夠的模型，否則預設為第一個
-        GameObject selectedPrefab = playerPrefabs[playerCount - 1 % playerPrefabs.Length];
-
-        // 生成不同模型的玩家
-        GameObject newPlayer = Instantiate(selectedPrefab, spawnPoint.position, Quaternion.identity);
-        playerInput.transform.SetParent(newPlayer.transform, false);
-
-        Debug.Log($"玩家 {playerInput.playerIndex + 1} 加入，使用 {selectedPrefab.name}，位置：{spawnPoint.position}");
+        Debug.Log($"玩家 {playerInput.playerIndex + 1} 加入，位置：{spawnArray[playerCount - 1].position}");
     }
 }

@@ -1,39 +1,70 @@
-using UnityEngine;
+ï»¿using UnityEngine;
+using System.Collections;
 
 public class PizzaMother : MonoBehaviour
 {
-    public float rotationSpeed = 30f; // ¦ÛÂà³t«×
-    public float impactForce = 5f;    // ¨ü¼²À»ªº¦ì²¾¤O
-    private Rigidbody rb;
-    public Transform detectionCube;  // °»´ú½d³òªº Cube¡]¤£°µ¬°¤lª«¥ó¡^
+    public float rotationSpeed = 30f;     // è‡ªè½‰é€Ÿåº¦
+    public float impactForce = 5f;        // æ’æ“Šæ™‚ä½ç§»è·é›¢
+    public float bounceForce = 5f;        // æ’ç‰†æ™‚åå½ˆå¼·åº¦
+    public Transform detectionCube;       // å¤–éƒ¨åµæ¸¬ Cube
+    public float moveDuration = 0.5f;     // æ’æ“Šç§»å‹•æŒçºŒæ™‚é–“
 
-    void Start()
-    {
-        rb = GetComponent<Rigidbody>();
-        rb.isKinematic = true; // ¥ıÅı¥¦¤£¨üª«²z¼vÅT¡A¥u¦ÛÂà
-    }
+    private bool canMove = true;
+    private Vector3 moveDirection = Vector3.zero;
+    private float moveTimer = 0f;
 
     void Update()
     {
-        // «ùÄò¦ÛÂà¡]µL½×¬O§_³Q¼²¡^
+        // è‡ªè½‰
         transform.Rotate(-Vector3.forward * rotationSpeed * Time.deltaTime);
 
-        // «O«ù Cube ªº¬Û¹ï¦ì¸m¡A¦ı¤£¨üÁY©ñ¼vÅT
-        detectionCube.position = transform.position; // «O«ù¬Û¹ï¦ì¸m
-        detectionCube.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0); // ¥u±ÛÂà¦Ó¤£¨üÁY©ñ¼vÅT
+        // åµæ¸¬ Cube åŒæ­¥ä½ç½®èˆ‡æ—‹è½‰
+        detectionCube.position = transform.position;
+        detectionCube.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
+
+        // å¹³æ»‘ç§»å‹•é‚è¼¯ï¼ˆæ¨¡æ“¬ impact åŠ›ï¼‰
+        if (!canMove)
+        {
+            moveTimer += Time.deltaTime;
+            float t = moveTimer / moveDuration;
+
+            Vector3 targetPos = transform.position + moveDirection * Time.deltaTime;
+            if (!Physics.Raycast(transform.position, moveDirection, 0.5f))
+            {
+                transform.position = targetPos;
+            }
+            else
+            {
+                // æ’ç‰†ï¼Œåå½ˆæ–¹å‘
+                moveDirection = Vector3.Reflect(moveDirection, Vector3.right); // æˆ–ä¾å¯¦éš›æ³•ç·šèª¿æ•´
+            }
+
+            if (moveTimer >= moveDuration)
+            {
+                canMove = true;
+                moveTimer = 0f;
+                moveDirection = Vector3.zero;
+            }
+        }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Pizza"))
+        if (collision.gameObject.CompareTag("Pizza") && canMove)
         {
-            Vector3 forceDirection = collision.contacts[0].point - transform.position;
-            forceDirection.y = 0;
-            forceDirection.Normalize();
+            Vector3 impactDir = transform.position - collision.contacts[0].point;
+            impactDir.y = 0;
+            impactDir.Normalize();
 
-            rb.isKinematic = false; // ¶}©l¨üª«²z¼vÅT
-            rb.AddForce(forceDirection * impactForce, ForceMode.Impulse);
-            Debug.Log("¤j©ÜÂÄ³Q¼²¨ì¤F¡A¶}©l¦ì²¾¡I");
+            moveDirection = impactDir * impactForce;
+            canMove = false;
+            moveTimer = 0f;
+        }
+
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            Vector3 normal = collision.contacts[0].normal;
+            moveDirection = Vector3.Reflect(moveDirection.normalized, normal) * bounceForce;
         }
     }
 }

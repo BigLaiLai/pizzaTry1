@@ -2,7 +2,7 @@
     "name": "PlayerInputActions",
     "maps": [
         {
-            "name": "Player",
+            "name": "Game",
             "id": "fbf6f91c-3e13-455e-a95b-a551d07212da",
             "actions": [
                 {
@@ -30,7 +30,7 @@
             ]
         },
         {
-            "name": "UI",
+            "name": "StartUI",
             "id": "1ed840c2-2467-4cf2-904e-c703e54a3986",
             "actions": [
                 {
@@ -72,6 +72,74 @@
                     "processors": "",
                     "groups": "",
                     "action": "Navigate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "Character",
+            "id": "63b1490a-deeb-47a0-8a81-d2678686a908",
+            "actions": [
+                {
+                    "name": "Move",
+                    "type": "Button",
+                    "id": "0aef64bc-4c77-4255-acaa-c7762dee3d0e",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "UnConfirm",
+                    "type": "Button",
+                    "id": "c3f6b133-02ad-450c-814b-cdb4b0f50a25",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Confirm",
+                    "type": "Button",
+                    "id": "d100f5eb-f430-4b02-b2b5-52f23358ba8c",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "396ecf18-5078-422e-a23c-5cd017412b9d",
+                    "path": "<Gamepad>/leftStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "824d7e7a-cd15-4837-8558-90c685c0f567",
+                    "path": "<Gamepad>/buttonSouth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "UnConfirm",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "05e830bc-5d07-4846-bd14-2bd9564d8525",
+                    "path": "<Gamepad>/buttonEast",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Confirm",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -11,15 +11,15 @@ public class MainMenu : MonoBehaviour
     private Button[] buttons;
     private int currentSelection = 0;
 
-    [Header("UI Settings")]
+    [Header("StartUI Settings")]
     public Color highlightColor = Color.green; // ✅ 可在 Unity 修改
     public Color normalColor = Color.white;    // 普通按鈕顏色
 
     void Awake()
     {
         inputActions = new PlayerInputActions();
-        inputActions.UI.Submit.performed += ctx => SelectButton();
-        inputActions.UI.Navigate.performed += ctx => Navigate(ctx.ReadValue<Vector2>());
+        inputActions.StartUI.Submit.performed += ctx => SelectButton();
+        inputActions.StartUI.Navigate.performed += ctx => Navigate(ctx.ReadValue<Vector2>());
         inputActions.Enable();
     }
 
